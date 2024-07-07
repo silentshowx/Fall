@@ -34,7 +34,6 @@ namespace Fall
             // WaitForInput = true;
             LoadImage();
             PutBorderEvent();
-            LoadEvents();
             LoadGraphic();
             FillPlayers();
         }
@@ -43,18 +42,12 @@ namespace Fall
             b73.BackColor = SystemColors.ControlDark;
         }
 
-        List<KeyValuePair<string, string>> tempYellow = new List<KeyValuePair<string, string>>();
-
         List<KeyValuePair<string, FigureX>> tempYellowX = new List<KeyValuePair<string, FigureX>>();
         List<KeyValuePair<string, FigureX>> tempGreenX = new List<KeyValuePair<string, FigureX>>();
         List<KeyValuePair<string, FigureX>> tempRedX = new List<KeyValuePair<string, FigureX>>();
         List<KeyValuePair<string, FigureX>> tempBlackX = new List<KeyValuePair<string, FigureX>>();
 
         public void FillPlayers() {
-            // tempYellow.Add(new KeyValuePair<string, string>("p56", "y1"));
-            // tempYellow.Add(new KeyValuePair<string, string>("p57", "y2"));
-            // tempYellow.Add(new KeyValuePair<string, string>("p58", "y3"));
-            // tempYellow.Add(new KeyValuePair<string, string>("p59", "y4"));
 
             tempYellowX.Add(new KeyValuePair<string, FigureX>("y1", new FigureX() { Name = "y1", NumPosition = 56, Postion = "b56" }));
             tempYellowX.Add(new KeyValuePair<string, FigureX>("y2", new FigureX() { Name = "y2", NumPosition = 57, Postion = "b57" }));
@@ -77,18 +70,69 @@ namespace Fall
             tempBlackX.Add(new KeyValuePair<string, FigureX>("y1", new FigureX() { Name = "b4", NumPosition = 71, Postion = "b71" }));
 
         }
-        
+
+        protected override bool ProcessTabKey(bool forward)
+        {
+            Control activeControl = this.ActiveControl;
+            Button btn = new Button();
+            if (activeControl != null && activeControl is Button)
+            {
+                btn = activeControl as Button;
+                SelectedFigure = btn.Name;
+            }
+
+            return base.ProcessTabKey(forward);
+        }
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // ako je space i selected button true -- onda idi dalje u suprotnom čekaj i ponavljaj
+            if (SelectedButton && keyData == Keys.Space) {
+                SelectedButton = false;
+            }
+            if (waitingForSpace && keyData == Keys.Space)
+            {
+                waitingForSpace = false;
+                WaitForInput = false;
+                return true;
+            }
+
+            if (keyData == Keys.Enter)
+            {
+                RandomImage();
+                SetButtonStyle();
+                Logic();
+                if (WaitForInput)
+                {
+                    waitingForSpace = true;
+                    return true;
+                }
+                return true;
+            }
+
+            if (keyData == Keys.Escape)
+            {
+                Close();
+                return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
         public int Counters { get; set; }
         public bool WaitForInput { get; set; }
         public bool SelectedButton { get; set; }
-        public void MeLogicX()
+        public string SelectedFigure { get; set; }
+        public void Logic()
         {
             List<KeyValuePair<string, FigureX>> figures = new List<KeyValuePair<string, FigureX>>();
             if (Number == 6) {
                 // ako niti jedan nije vani izvadi prvoga žutoga
                 figures = SelectFigure();
                 if (WaitForInput) { WaitForInput = false; return; }
-                else if (!WaitForInput && SelectedButton)
+                else if (!WaitForInput && !SelectedButton) {
+                    // go to selectButton --- selectedButtonIs // -- wait for space to get value from selectedButton
+                    SelectedButton = true; return;
+                }
+                else if (!WaitForInput && SelectedButton && SelectedFigure != String.Empty)
                 {
                     WaitForInput = true;
 
@@ -125,15 +169,6 @@ namespace Fall
                 else if (Counters == 5) MoveFromTo(15, 17);
                 Counters++;
                 */
-            }
-        }
-        public void MeLogic(List<KeyValuePair<string, FigureX>> lstFigureX) {
-            foreach (KeyValuePair<string, FigureX> figure in lstFigureX)
-            {
-                if (Number < 6) {
-                    SelectFigure();
-                    MoveFromTo(1, 5);
-                }
             }
         }
         public List<KeyValuePair<string, FigureX>> SelectFigure()
@@ -212,58 +247,6 @@ namespace Fall
                 }
             }
         }
-
-        public void Logic() {
-            // izvadi igrača ako je broj 6 // odaberi željeni ring i dalje radi logiku
-            if (Number == 6) {
-                if (b73.FlatStyle == FlatStyle.Popup)
-                {
-                    // iz odabrane grupe vuci poteze
-                    // ako su svi u kućici izvuci prvoga
-                    // rrm -- za sada je najvažnije da dobiješ gibanje jednoga - znači radiš samo sa jednom figurom - koju isčitavaš
-                    foreach (var yellow in tempYellowX)
-                    {
-                        if (yellow.Key == "y1" && yellow.Value.Postion == "b0") { }
-                    }
-                }
-                FigureX f = new FigureX() {  };
-                string btnName = "b5";
-                Button newButton = GetControlByName(btnName) as Button;
-                newButton.Image = Image.FromFile("");
-
-                // čekaj za input sa kojim igračem hoće igrati user 1,2,3,4
-
-                // 1. ako su svi u rupi počni igrati automatski sa prvim igračem
-                // 2. ako je jedan vani i nije na nuli pitaj sa kojim igračem želi igrati žuti
-                // 2.1 ako je prvi igrač vani na nuli i to je isto kolo onda počmi sa njima dalje igrati u sljedećem potezu
-
-
-                // ako je broj 6 onda pozovi figuru "y1" i definiraj joj na koji button ide
-                // zato je potrebna metoda koja indexira figuru od postojećega polja
-                // metoda 
-            }
-        }
-        // figura y1 ili neka druga prikaži se na željenoj poziciji
-        // metoda ShowOnPosition(Button btn){ btn.Image = this.Picture - slika od figure }
-        // klasa Figura treba imati i sliku od figure da bi implementirao ShowOnPosition metodu
-        /*
-            ShowOnPosition( - ubaci parametar Number) i ova metoda automatski isčita trenutno polje i prikazuje za uvećanu vrijednost na drugoj poziciji i briše se 
-            usage: figure.ShowOnPosition(Number);
-            ShowOnPosition(int number){ 
-                NumPosition = NumPosition + Number; // NumPosition = 2 + Number = 3  .. endPosition = 5 -- pronađi "b5"
-                // pronađi button koji ima tu poziciju
-                    // za svaki button koji postoji isčitaj ime i ako je jednako onome gore pod njegov image postavi "image figure - picture"
-                string btnName = "b" + NumPosition.ToString();
-                foreach (Control control in this.Controls){ 
-                    if (control is Button btn && btn.Name == btnName)
-                    {
-                        // prikaži na novoj poziciji buttona - image od Figure
-                        btn.Image = "nova verzija" // ovo treba provjeriti da se vidi dali to radi 
-                    }
-                    }
-            }
-         */
-
         public Control GetControlByName(string Name)
         {
             foreach (Control c in this.Controls)
@@ -272,70 +255,6 @@ namespace Fall
 
             return null;
         }
-
-        public void TempGameLogic() {
-            if (Repeat)
-            {
-                FigureX firstFigure = new FigureX() { Name = "y1" };
-                firstFigure = tempYellowX[0].Value;
-
-                // set second position
-                FigureX secondFigure = new FigureX();
-                secondFigure.NumPosition = firstFigure.NumPosition + Number;
-                secondFigure.Postion = "b" + secondFigure.NumPosition.ToString(); 
-
-                // get name of first position 
-                Button firstButton = new Button();
-                foreach (Button btn in this.Controls) {
-                    if (btn.Name == secondFigure.Postion) {
-                        // fill information in button to new postion
-                        firstButton = btn;
-                    }
-                }
-                // move to another position
-                foreach (Button btn in this.Controls) 
-                {
-                    if (btn.Name == firstFigure.Postion) {
-                        firstButton.Image = btn.Image;
-                    }
-                }
-                Repeat = false;
-            }
-            if (b73.FlatStyle == FlatStyle.Popup) { 
-                if (Number == 6) {
-                    if (tempYellowX[0].Value.Postion == "b56")
-                    {
-                        b0.Image = b56.Image;
-                        b56.Image = null;
-                        tempYellowX[0] = new KeyValuePair<string, FigureX>("y1", new FigureX() { Name = "y1", NumPosition = 0, Postion = "b0" });
-                        Repeat = true;
-                    }
-                    // if is "y1" already out and not on 0 position put "y2" on 0 positino
-                    else if (tempYellowX[0].Value.NumPosition > 0) {
-                        // check for other figure to Move out
-                        if (tempYellowX[1].Value.Postion == "b57")
-                        {
-                            // Move "y2" to position 0
-                            b0.Image = b57.Image;
-                            b57.Image = null;
-                            tempYellowX[1] = new KeyValuePair<string, FigureX>("y2", new FigureX() { Name = "y2", NumPosition = 0, Postion = "b0" });
-                        }
-                    }
-                }
-            }
-        }
-        private CustomPictureBox FindPictureBoxByPosition(int position)
-        {
-            foreach (Control control in this.Controls)
-            {
-                if (control is CustomPictureBox pictureBox && pictureBox.Position == position)
-                {
-                    return pictureBox;
-                }
-            }
-            return null;
-        }
-
         public void SetButtonStyle()
         {
             if (b73.FlatStyle == FlatStyle.Popup)
@@ -367,46 +286,7 @@ namespace Fall
                 b73.BackColor = SystemColors.ControlDark;
             }
         }
-        public void LoadEvents() {
-
-        }
         private bool waitingForSpace = false;
-
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
-        {
-            if (waitingForSpace && keyData == Keys.Space)
-            {
-                // Exit the "waiting for space" state
-                waitingForSpace = false;
-                WaitForInput = false;
-                return true;
-            }
-
-            if (keyData == Keys.Enter)
-            {
-                RandomImage();
-                MeLogicX();
-                if (WaitForInput)
-                {
-                    waitingForSpace = true;
-                    return true;
-                }
-                // if (Number == 6) Repeat = true;
-                // if (Repeat == false) SetButtonStyle();
-                // TempGameLogic();
-                // VeryFirstMove = false;
-                return true;
-            }
-
-            if (keyData == Keys.Escape)
-            {
-                Close();
-                return true;
-            }
-
-            return base.ProcessCmdKey(ref msg, keyData);
-        }
-
         public void RandomImage() {
             int index = random.Next(imgList.Count);
             // rrm Get 6 multiple times -> index = 5;
