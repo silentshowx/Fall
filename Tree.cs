@@ -82,7 +82,7 @@ namespace Fall
             }
 
             return base.ProcessTabKey(forward);
-        }
+        } 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             // ako je space i selected button true -- onda idi dalje u suprotnom čekaj i ponavljaj
