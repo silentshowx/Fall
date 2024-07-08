@@ -379,6 +379,7 @@
             this.b72.Name = "b72";
             this.b72.Size = new System.Drawing.Size(80, 80);
             this.b72.TabIndex = 72;
+            this.b72.TabStop = false;
             this.b72.UseVisualStyleBackColor = false;
             // 
             // b55
@@ -775,6 +776,7 @@
             this.b74.Name = "b74";
             this.b74.Size = new System.Drawing.Size(186, 185);
             this.b74.TabIndex = 74;
+            this.b74.TabStop = false;
             this.b74.UseVisualStyleBackColor = false;
             // 
             // b75
@@ -784,15 +786,17 @@
             this.b75.Name = "b75";
             this.b75.Size = new System.Drawing.Size(186, 185);
             this.b75.TabIndex = 75;
+            this.b75.TabStop = false;
             this.b75.UseVisualStyleBackColor = false;
             // 
             // b73
             // 
-            this.b73.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
+            this.b73.BackColor = System.Drawing.SystemColors.ControlDark;
             this.b73.Location = new System.Drawing.Point(64, 735);
             this.b73.Name = "b73";
             this.b73.Size = new System.Drawing.Size(186, 185);
             this.b73.TabIndex = 73;
+            this.b73.TabStop = false;
             this.b73.UseVisualStyleBackColor = false;
             // 
             // b76
@@ -802,6 +806,7 @@
             this.b76.Name = "b76";
             this.b76.Size = new System.Drawing.Size(186, 185);
             this.b76.TabIndex = 76;
+            this.b76.TabStop = false;
             this.b76.UseVisualStyleBackColor = false;
             // 
             // button1
