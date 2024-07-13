@@ -18,7 +18,7 @@ namespace Fall
         public frmGame()
         {
             InitializeComponent();
-            Tree tree = new Tree(); tree.ShowDialog();
+            Tree tree = new Tree(); tree.ShowDialog(); 
 
             // News news = new News();
             // news.ShowDialog();
