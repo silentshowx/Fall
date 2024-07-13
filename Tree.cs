@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Security.Policy;
 using System.Windows.Forms;
 
 namespace Fall
@@ -11,11 +12,12 @@ namespace Fall
         private List<string> imgList = new List<string> { "1.png", "2.png", "3.png", "4.png", "5.png", "6.png" };
         private Random random = new Random();
         public int Number { get; set; }
-        string baseDirectory { get; set; }
-        string projectRoot { get; set; }
-        string resourcesPath { get; set; }
+        string BaseDirectory { get; set; }
+        string ProjectRoot { get; set; }
+        string ResourcePath { get; set; }
         public bool Repeat { get; set; }
         public bool VeryFirstMove { get; set; }
+        string StateOfGame { get; set; }
 
         public Tree()
         {
@@ -26,7 +28,8 @@ namespace Fall
             LoadGraphic();
             FillPlayers();
         }
-        public void LoadGraphic() { 
+        public void LoadGraphic()
+        {
             b73.BackColor = SystemColors.ControlDark;
         }
 
@@ -35,7 +38,8 @@ namespace Fall
         List<KeyValuePair<string, FigureX>> tempRedX = new List<KeyValuePair<string, FigureX>>();
         List<KeyValuePair<string, FigureX>> tempBlackX = new List<KeyValuePair<string, FigureX>>();
 
-        public void FillPlayers() {
+        public void FillPlayers()
+        {
 
             tempYellowX.Add(new KeyValuePair<string, FigureX>("y1", new FigureX() { Name = "y1", NumPosition = 56, Postion = "b56" }));
             tempYellowX.Add(new KeyValuePair<string, FigureX>("y2", new FigureX() { Name = "y2", NumPosition = 57, Postion = "b57" }));
@@ -69,7 +73,7 @@ namespace Fall
             }
 
             return base.ProcessTabKey(forward);
-        } 
+        }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             // ako je space i selected button true -- onda idi dalje u suprotnom čekaj i ponavljaj
@@ -77,7 +81,8 @@ namespace Fall
             {
                 waitingForSpace = false;
                 Button btnActiveControl = ActiveControl as Button;
-                if (btnActiveControl != null) {
+                if (btnActiveControl != null)
+                {
                     Logic();
                 }
                 return true;
@@ -86,13 +91,15 @@ namespace Fall
             if (keyData == Keys.Enter && !waitingForSpace)
             {
                 RandomImage();
-                if (Number == 6) {
+                if (Number == 6)
+                {
                     SetButtonColor(true); waitingForSpace = true;
                     LogicFor6();
                 }
-                else {
+                else
+                {
                     SetButtonColor(false);
-                    Logic(); 
+                    Logic();
                 }
                 return true;
             }
@@ -112,9 +119,57 @@ namespace Fall
             List<KeyValuePair<string, FigureX>> figures = new List<KeyValuePair<string, FigureX>>();
             figures = SelectFigure();
         }
-        public void LogicFor6() {
+        public void LogicFor6()
+        {
             List<KeyValuePair<string, FigureX>> figures = new List<KeyValuePair<string, FigureX>>();
             figures = SelectFigure();
+            if (waitingForSpace && SelectedFigure != null)
+            {
+                int fromPosition = 0;
+                int toPosition = 0;
+                string name = SelectedFigure.Remove(0, 1);
+                int numOfFiguresInGame = FiguresInGame(figures);
+                int.TryParse(name, out fromPosition);
+                int.TryParse(FigureStartPostion.Yellow.Remove(0, 1), out toPosition);
+                if (toPosition == 0)
+                {
+                    StateOfGame = Fall.StateOfGame.ErrorsGoToPostionIsZero;
+                    return;
+                }
+                if (fromPosition != 0 && toPosition != 0)
+                {
+                    if (figures[0].Value.Name.Contains("y"))
+                    {
+
+                        if (numOfFiguresInGame == 0 && toPosition != 0)
+                        {
+                            MoveFromTo(fromPosition, toPosition);
+                        }
+                        else if (numOfFiguresInGame == 1)
+                        {
+                            MoveFromTo(fromPosition, toPosition);
+                        }
+                        else if (numOfFiguresInGame == 2)
+                        {
+                            MoveFromTo(fromPosition, toPosition);
+                        }
+                        else if (numOfFiguresInGame == 3)
+                        {
+                            MoveFromTo(fromPosition, toPosition);
+                        }
+                    }
+                }
+            }
+        }
+
+        public int FiguresInGame(List<KeyValuePair<string, FigureX>> selectedFigures)
+        {
+            int cnt = 0;
+            foreach (KeyValuePair<string, FigureX> f in selectedFigures)
+            {
+                if (f.Value.InGame) cnt++;
+            }
+            return cnt;
         }
         public List<KeyValuePair<string, FigureX>> SelectFigure()
         {
@@ -155,8 +210,10 @@ namespace Fall
             DisableOther(lstSelected);
             return lstFigure;
         }
-        public void DisableOther(List<string> keepButtons) {            
-            for (int i = 0; i < 72; i++) {
+        public void DisableOther(List<string> keepButtons)
+        {
+            for (int i = 0; i < 72; i++)
+            {
                 string name = "b" + i.ToString();
                 Button btn = GetControlByName(name) as Button;
                 btn.Enabled = false;
@@ -164,29 +221,34 @@ namespace Fall
 
                 foreach (string btnName in keepButtons)
                 {
-                    if (btnName == name) {
+                    if (btnName == name)
+                    {
                         btn.Enabled = true;
                         btn.TabStop = true;
                     }
                 }
             }
         }
-        public void MoveFromTo(int startPosition, int endPosition) {
+        public void MoveFromTo(int startPosition, int endPosition)
+        {
             // search over whole position - when you find start - you know which figure is -- select those figure and change it value and show 
             // on appropriate postion - remove old one
-            for (int i = 0; i < 72; i++) {
-                if (i == startPosition) {
+            for (int i = 0; i < 72; i++)
+            {
+                if (i == startPosition)
+                {
                     Button btnStart = GetControlByName("b" + i.ToString()) as Button;
                     if (btnStart != null)
                     {
                         Button btnEnd = GetControlByName("b" + i.ToString()) as Button;
-                        if (btnEnd != null) {
+                        if (btnEnd != null)
+                        {
                             btnEnd.Image = btnStart.Image;
                             btnStart.Image = null;
                         }
                     }
                 }
-            }        
+            }
         }
         public Control GetControlByName(string Name)
         {
@@ -199,7 +261,8 @@ namespace Fall
         public void SetButtonColor(bool buttonFocus)
         {
             if (buttonFocus) return;
-            else if (b73.BackColor == SystemColors.ControlDark && !buttonFocus) {
+            else if (b73.BackColor == SystemColors.ControlDark && !buttonFocus)
+            {
                 b73.BackColor = SystemColors.GradientActiveCaption;
                 b74.BackColor = SystemColors.ControlDark;
             }
@@ -220,31 +283,35 @@ namespace Fall
             }
         }
         private bool waitingForSpace = false;
-        public void RandomImage() {
+        public void RandomImage()
+        {
             int index = random.Next(imgList.Count);
             // rrm Get 6 multiple times -> index = 5;
             string selectedImage = imgList[index];
             Number = index + 1;
             b72.Image = Image.FromFile(selectedImage);
         }
-        public void LoadImage() {
-            baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            projectRoot = Directory.GetParent(baseDirectory).Parent.Parent.FullName;
-            resourcesPath = Path.Combine(projectRoot, "resources");
+        public void LoadImage()
+        {
+            BaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            ProjectRoot = Directory.GetParent(BaseDirectory).Parent.Parent.FullName;
+            ResourcePath = Path.Combine(ProjectRoot, "resources");
             imgList = new List<string>
             {
-                Path.Combine(resourcesPath, "1.png"),
-                Path.Combine(resourcesPath, "2.png"),
-                Path.Combine(resourcesPath, "3.png"),
-                Path.Combine(resourcesPath, "4.png"),
-                Path.Combine(resourcesPath, "5.png"),
-                Path.Combine(resourcesPath, "6.png")
+                Path.Combine(ResourcePath, "1.png"),
+                Path.Combine(ResourcePath, "2.png"),
+                Path.Combine(ResourcePath, "3.png"),
+                Path.Combine(ResourcePath, "4.png"),
+                Path.Combine(ResourcePath, "5.png"),
+                Path.Combine(ResourcePath, "6.png")
             };
         }
-        public void PutBorderEvent() {
+        public void PutBorderEvent()
+        {
             foreach (Control control in Controls)
             {
-                if (control.Name == "b0") {
+                if (control.Name == "b0")
+                {
                     b0.Click += B0_Click;
                 }
             }
@@ -272,7 +339,8 @@ namespace Fall
         {
 
         }
-        public void ShortWriteOut() {
+        public void ShortWriteOut()
+        {
             List<string> lstName = new List<string>();
             for (int i = 0; i < 72; i++)
             {
@@ -281,5 +349,27 @@ namespace Fall
             }
             File.WriteAllLines("dinova.txt", lstName);
         }
+    }
+
+    static class FigureStartPostion
+    {
+        public static string Yellow { get { return "b0"; } }
+        public static string Green { get { return "b10"; } }
+        public static string Red { get { return "b20"; } }
+        public static string Black { get { return "b30"; } }
+
+    }
+
+    static class StateOfGame
+    {
+        public static string Status { get; set; }
+        public static string Start { get; set; }
+        public static string End { get; set; }
+        public static string ErrorsGoToPostionIsZero { get { return Errors.GoToPostionIsZero; } }
+    }
+
+    static class Errors
+    {
+        public static string GoToPostionIsZero { get; set; }
     }
 }
