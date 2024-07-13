@@ -2,20 +2,40 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Security.Policy;
 using System.Windows.Forms;
 
 namespace Fall
 {
+    static class FigureStartPostion {
+        public static string Yellow { get { return "b0"; } }
+        public static string Green{ get { return "b10"; } }
+        public static string Red { get { return "b20"; } }
+        public static string Black { get { return "b30"; } }
+
+    }
+
+    static class StateOfGame {
+        public static string Status { get; set; }
+        public static string Start { get; set; }
+        public static string End { get; set; }
+        public static string ErrorsGoToPostionIsZero { get { return Errors.GoToPostionIsZero; } }
+    }
+
+    static class Errors { 
+        public static string GoToPostionIsZero { get; set; }
+    }
     public partial class Tree : Form
     {
         private List<string> imgList = new List<string> { "1.png", "2.png", "3.png", "4.png", "5.png", "6.png" };
         private Random random = new Random();
         public int Number { get; set; }
-        string baseDirectory { get; set; }
-        string projectRoot { get; set; }
-        string resourcesPath { get; set; }
+        string BaseDirectory { get; set; }
+        string ProjectRoot { get; set; }
+        string ResourcePath { get; set; }
         public bool Repeat { get; set; }
         public bool VeryFirstMove { get; set; }
+        string StateOfGame { get; set; }
 
         public Tree()
         {
@@ -74,7 +94,7 @@ namespace Fall
         {
             // ako je space i selected button true -- onda idi dalje u suprotnom čekaj i ponavljaj
             if (waitingForSpace && keyData == Keys.Space)
-            {
+             {
                 waitingForSpace = false;
                 Button btnActiveControl = ActiveControl as Button;
                 if (btnActiveControl != null) {
@@ -115,6 +135,49 @@ namespace Fall
         public void LogicFor6() {
             List<KeyValuePair<string, FigureX>> figures = new List<KeyValuePair<string, FigureX>>();
             figures = SelectFigure();
+            if (waitingForSpace && SelectedFigure != null) {
+                int fromPosition = 0;
+                int toPosition = 0;
+                string name = SelectedFigure.Remove(0, 1);
+                int numOfFiguresInGame = FiguresInGame(figures);
+                int.TryParse(name, out fromPosition);
+                int.TryParse(FigureStartPostion.Yellow.Remove(0, 1), out toPosition);
+                if (toPosition == 0) {
+                    StateOfGame = Fall.StateOfGame.ErrorsGoToPostionIsZero;
+                    return;
+                }
+                if(fromPosition != 0 && toPosition != 0)
+                {
+                    if (figures[0].Value.Name.Contains("y")) {
+                        
+                        if (numOfFiguresInGame == 0 && toPosition != 0) {
+                            MoveFromTo(fromPosition, toPosition);
+                        }
+                        else if (numOfFiguresInGame == 1) 
+                        {
+                            MoveFromTo(fromPosition, toPosition); 
+                        }
+                        else if (numOfFiguresInGame == 2)
+                        {
+                            MoveFromTo(fromPosition, toPosition);
+                        }
+                        else if (numOfFiguresInGame == 3)
+                        {
+                            MoveFromTo(fromPosition, toPosition);
+                        }
+                    }                        
+                }
+            }
+        }
+
+        public int FiguresInGame(List<KeyValuePair<string, FigureX>> selectedFigures)
+        {
+            int cnt = 0;
+            foreach (KeyValuePair<string, FigureX> f in selectedFigures) 
+            {
+                if (f.Value.InGame) cnt++;
+            }
+            return cnt;
         }
         public List<KeyValuePair<string, FigureX>> SelectFigure()
         {
@@ -228,17 +291,17 @@ namespace Fall
             b72.Image = Image.FromFile(selectedImage);
         }
         public void LoadImage() {
-            baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            projectRoot = Directory.GetParent(baseDirectory).Parent.Parent.FullName;
-            resourcesPath = Path.Combine(projectRoot, "resources");
+            BaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            ProjectRoot = Directory.GetParent(BaseDirectory).Parent.Parent.FullName;
+            ResourcePath = Path.Combine(ProjectRoot, "resources");
             imgList = new List<string>
             {
-                Path.Combine(resourcesPath, "1.png"),
-                Path.Combine(resourcesPath, "2.png"),
-                Path.Combine(resourcesPath, "3.png"),
-                Path.Combine(resourcesPath, "4.png"),
-                Path.Combine(resourcesPath, "5.png"),
-                Path.Combine(resourcesPath, "6.png")
+                Path.Combine(ResourcePath, "1.png"),
+                Path.Combine(ResourcePath, "2.png"),
+                Path.Combine(ResourcePath, "3.png"),
+                Path.Combine(ResourcePath, "4.png"),
+                Path.Combine(ResourcePath, "5.png"),
+                Path.Combine(ResourcePath, "6.png")
             };
         }
         public void PutBorderEvent() {

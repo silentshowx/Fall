@@ -19,6 +19,7 @@ namespace Fall
         {
             InitializeComponent();
             Tree tree = new Tree(); tree.ShowDialog();
+            // Close();
 
             // News news = new News();
             // news.ShowDialog();
