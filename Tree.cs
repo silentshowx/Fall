@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Security.Cryptography;
 using System.Security.Policy;
 using System.Windows.Forms;
 
@@ -10,6 +12,7 @@ namespace Fall
     public partial class Tree : Form
     {
         private List<string> imgList = new List<string> { "1.png", "2.png", "3.png", "4.png", "5.png", "6.png" };
+        private List<string> imgListFigure = new List<string> { "Yellow.png", "Green.png", "Red.png", "Black.png" };
         private Random random = new Random();
         public int Number { get; set; }
         string BaseDirectory { get; set; }
@@ -18,6 +21,11 @@ namespace Fall
         public bool Repeat { get; set; }
         public bool VeryFirstMove { get; set; }
         string StateOfGame { get; set; }
+
+        public List<KeyValuePair<string, FigureX>> tempYellowX = new List<KeyValuePair<string, FigureX>>();
+        public List<KeyValuePair<string, FigureX>> tempGreenX = new List<KeyValuePair<string, FigureX>>();
+        public List<KeyValuePair<string, FigureX>> tempRedX = new List<KeyValuePair<string, FigureX>>();
+        public List<KeyValuePair<string, FigureX>> tempBlackX = new List<KeyValuePair<string, FigureX>>();
 
         public Tree()
         {
@@ -28,15 +36,33 @@ namespace Fall
             LoadGraphic();
             FillPlayers();
         }
+
+        public void CheckMovement(int position) {
+            // dali se napoziciji nalazi žuta figure provjerit preko liste iz tempyellowx -- u njegovim pozicijama po svakoj figure 
+            // ako se nalazi onda ga vrati na početnu poziciju
+            foreach (KeyValuePair<string, FigureX> yellow in tempYellowX) {
+                if (position == yellow.Value.NumPosition) {
+                    MoveFromTo(position, 56); return;
+                }
+            }
+            foreach (KeyValuePair<string, FigureX> green in tempYellowX)
+            {
+
+            }
+            foreach (KeyValuePair<string, FigureX> red in tempYellowX)
+            {
+
+            }
+            foreach (KeyValuePair<string, FigureX> black in tempYellowX)
+            {
+
+            }
+        }
         public void LoadGraphic()
         {
             b73.BackColor = SystemColors.ControlDark;
         }
 
-        List<KeyValuePair<string, FigureX>> tempYellowX = new List<KeyValuePair<string, FigureX>>();
-        List<KeyValuePair<string, FigureX>> tempGreenX = new List<KeyValuePair<string, FigureX>>();
-        List<KeyValuePair<string, FigureX>> tempRedX = new List<KeyValuePair<string, FigureX>>();
-        List<KeyValuePair<string, FigureX>> tempBlackX = new List<KeyValuePair<string, FigureX>>();
 
         public void FillPlayers()
         {
@@ -61,6 +87,16 @@ namespace Fall
             tempBlackX.Add(new KeyValuePair<string, FigureX>("b3", new FigureX() { Name = "b3", NumPosition = 70, Postion = "b70" }));
             tempBlackX.Add(new KeyValuePair<string, FigureX>("b4", new FigureX() { Name = "b4", NumPosition = 71, Postion = "b71" }));
 
+        }
+        protected void SetSelectedFigure()
+        {
+            Control activeControl = this.ActiveControl;
+            Button btn = new Button();
+            if (activeControl != null && activeControl is Button)
+            {
+                btn = activeControl as Button;
+                SelectedFigure = btn.Name;
+            }
         }
         protected override bool ProcessTabKey(bool forward)
         {
@@ -94,7 +130,9 @@ namespace Fall
                 if (Number == 6)
                 {
                     SetButtonColor(true); waitingForSpace = true;
-                    LogicFor6();
+                    SetSelectedFigure();
+                    // LogicFor6();
+                    LogicFor7();
                 }
                 else
                 {
@@ -112,6 +150,19 @@ namespace Fall
 
             return base.ProcessCmdKey(ref msg, keyData);
         }
+        /*
+        public bool IsSameFigureAlreadyOnPosition(string figureColor) {
+            if (SelectedFigure == null) {
+                switch (figureColor) {
+                    case FigureStartPostion.Yellow: { } break;
+                    case FigureStartPostion.Green: { } break;
+                    case FigureStartPostion.Red: { } break;
+                    case FigureStartPostion.Black: { } break;
+                }
+            }
+            return false;
+        }
+        */
         public int Counters { get; set; }
         public string SelectedFigure { get; set; }
         public void Logic()
@@ -119,10 +170,21 @@ namespace Fall
             List<KeyValuePair<string, FigureX>> figures = new List<KeyValuePair<string, FigureX>>();
             figures = SelectFigure();
         }
+
+        public void LogicFor7()
+        {
+            List<KeyValuePair<string, FigureX>> figures = new List<KeyValuePair<string, FigureX>>();
+            figures = SelectFigure();
+            if (waitingForSpace && SelectedFigure != null)
+            {
+                MoveFromToStartPosition(new Button() { Name = SelectedFigure });
+            }
+        }
         public void LogicFor6()
         {
             List<KeyValuePair<string, FigureX>> figures = new List<KeyValuePair<string, FigureX>>();
             figures = SelectFigure();
+            MessageBox.Show(SelectedFigure); 
             if (waitingForSpace && SelectedFigure != null)
             {
                 int fromPosition = 0;
@@ -130,10 +192,23 @@ namespace Fall
                 string name = SelectedFigure.Remove(0, 1);
                 int numOfFiguresInGame = FiguresInGame(figures);
                 int.TryParse(name, out fromPosition);
+                bool alreadyOnPosition = false;
                 int.TryParse(FigureStartPostion.Yellow.Remove(0, 1), out toPosition);
-                if (toPosition == 0)
+                if (numOfFiguresInGame == 1)
                 {
-                    StateOfGame = Fall.StateOfGame.ErrorsGoToPostionIsZero;
+                    toPosition = fromPosition + Number;
+                    MoveFromTo(fromPosition, toPosition);
+                }
+                if (toPosition == 0 && numOfFiguresInGame == 0)
+                {
+                    if (alreadyOnPosition)
+                    {
+                        StateOfGame = Fall.StateOfGame.SameColorFigureAlreadyOnPosition;
+                    }
+                    else if (!alreadyOnPosition) {
+                        MoveFromTo(fromPosition, toPosition);
+                        numOfFiguresInGame++;
+                    }
                     return;
                 }
                 if (fromPosition != 0 && toPosition != 0)
@@ -229,10 +304,185 @@ namespace Fall
                 }
             }
         }
-        public void MoveFromTo(int startPosition, int endPosition)
+
+        public void UpdateFigurePosition(string figure, int position) {
+            foreach (KeyValuePair<string, FigureX> item in tempYellowX)
+            {
+                if (item.Value.Name == "y1") { tempYellowX[0].Value.NumPosition = position; }
+            }
+        }
+        public void MoveFromToStartPosition(Button btn) {
+            Button startButton = null;
+            Button endButton = null;
+            // Move Yellow
+            if (btn.Name == "y1") 
+            {
+                if (tempYellowX[1].Value.NumPosition != 0 && tempYellowX[2].Value.NumPosition != 0 && tempYellowX[3].Value.NumPosition != 0) {
+                    tempYellowX[0].Value.NumPosition = 0;
+                    tempYellowX[0].Value.InGame = true;
+                    startButton = GetControlByName("b56") as Button;                    
+                    endButton = GetControlByName("b0") as Button;
+                }
+            }
+            else if (btn.Name == "y2") 
+            {
+                if (tempYellowX[0].Value.NumPosition != 0 && tempYellowX[2].Value.NumPosition != 0 && tempYellowX[3].Value.NumPosition != 0)
+                {
+                    tempYellowX[1].Value.NumPosition = 0;
+                    tempYellowX[1].Value.InGame = true;
+                    startButton = GetControlByName("b57") as Button;
+                    endButton = GetControlByName("b0") as Button;
+                }
+            }
+            else if (btn.Name == "y3") 
+            {
+                if (tempYellowX[0].Value.NumPosition != 0 && tempYellowX[1].Value.NumPosition != 0 && tempYellowX[3].Value.NumPosition != 0)
+                {
+                    tempYellowX[2].Value.NumPosition = 0;
+                    tempYellowX[2].Value.InGame = true;
+                    startButton = GetControlByName("b58") as Button;
+                    endButton = GetControlByName("b0") as Button;
+                }
+            }
+            else if (btn.Name == "y4") {
+                if (tempYellowX[0].Value.NumPosition != 0 && tempYellowX[1].Value.NumPosition != 0 && tempYellowX[1].Value.NumPosition != 0)
+                {
+                    tempYellowX[3].Value.NumPosition = 0;
+                    tempYellowX[3].Value.InGame = true;
+                    startButton = GetControlByName("b59") as Button;
+                    endButton = GetControlByName("b0") as Button;
+                }
+            }
+            // Move Green
+            else if (btn.Name == "g1")
+            {
+                if (tempGreenX[1].Value.NumPosition != 0 && tempGreenX[2].Value.NumPosition != 0 && tempGreenX[3].Value.NumPosition != 0)
+                {
+                    tempGreenX[0].Value.NumPosition = 0;
+                    tempGreenX[0].Value.InGame = true;
+                    startButton = GetControlByName("b60") as Button;
+                    endButton = GetControlByName("b10") as Button;
+                }
+            }
+            else if (btn.Name == "g2")
+            {
+                if (tempGreenX[0].Value.NumPosition != 0 && tempGreenX[2].Value.NumPosition != 0 && tempGreenX[3].Value.NumPosition != 0)
+                {
+                    tempGreenX[1].Value.NumPosition = 0;
+                    tempGreenX[1].Value.InGame = true;
+                    startButton = GetControlByName("b61") as Button;
+                    endButton = GetControlByName("b10") as Button;
+                }
+            }
+            else if (btn.Name == "g3")
+            {
+                if (tempGreenX[0].Value.NumPosition != 0 && tempGreenX[1].Value.NumPosition != 0 && tempGreenX[3].Value.NumPosition != 0)
+                {
+                    tempGreenX[2].Value.NumPosition = 0;
+                    tempGreenX[2].Value.InGame = true;
+                    startButton = GetControlByName("b62") as Button;
+                    endButton = GetControlByName("b10") as Button;
+                }
+            }
+            else if (btn.Name == "g4")
+            {
+                if (tempGreenX[0].Value.NumPosition != 0 && tempGreenX[1].Value.NumPosition != 0 && tempGreenX[1].Value.NumPosition != 0)
+                {
+                    tempGreenX[3].Value.NumPosition = 0;
+                    tempGreenX[3].Value.InGame = true;
+                    startButton = GetControlByName("b63") as Button;
+                    endButton = GetControlByName("b10") as Button;
+                }
+            }
+            // Move Red
+            else if (btn.Name == "r1")
+            {
+                if (tempRedX[1].Value.NumPosition != 0 && tempRedX[2].Value.NumPosition != 0 && tempRedX[3].Value.NumPosition != 0)
+                {
+                    tempRedX[0].Value.NumPosition = 0;
+                    tempRedX[0].Value.InGame = true;
+                    startButton = GetControlByName("b64") as Button;
+                    endButton = GetControlByName("b20") as Button;
+                }
+            }
+            else if (btn.Name == "r2")
+            {
+                if (tempRedX[0].Value.NumPosition != 0 && tempRedX[2].Value.NumPosition != 0 && tempRedX[3].Value.NumPosition != 0)
+                {
+                    tempRedX[1].Value.NumPosition = 0;
+                    tempRedX[1].Value.InGame = true;
+                    startButton = GetControlByName("b65") as Button;
+                    endButton = GetControlByName("b20") as Button;
+                }
+            }
+            else if (btn.Name == "r3")
+            {
+                if (tempRedX[0].Value.NumPosition != 0 && tempRedX[1].Value.NumPosition != 0 && tempRedX[3].Value.NumPosition != 0)
+                {
+                    tempRedX[2].Value.NumPosition = 0;
+                    tempRedX[2].Value.InGame = true;
+                    startButton = GetControlByName("b66") as Button;
+                    endButton = GetControlByName("b20") as Button;
+                }
+            }
+            else if (btn.Name == "r4")
+            {
+                if (tempRedX[0].Value.NumPosition != 0 && tempRedX[1].Value.NumPosition != 0 && tempRedX[1].Value.NumPosition != 0)
+                {
+                    tempRedX[3].Value.NumPosition = 0;
+                    tempRedX[3].Value.InGame = true;
+                    startButton = GetControlByName("b67") as Button;
+                    endButton = GetControlByName("b20") as Button;
+                }
+            }
+            // Move Black
+            else if (btn.Name == "b1")
+            {
+                if (tempBlackX[1].Value.NumPosition != 0 && tempBlackX[2].Value.NumPosition != 0 && tempBlackX[3].Value.NumPosition != 0)
+                {
+                    tempBlackX[0].Value.NumPosition = 0;
+                    tempBlackX[0].Value.InGame = true;
+                    startButton = GetControlByName("b68") as Button;
+                    endButton = GetControlByName("b30") as Button;
+                }
+            }
+            else if (btn.Name == "b2")
+            {
+                if (tempBlackX[0].Value.NumPosition != 0 && tempBlackX[2].Value.NumPosition != 0 && tempBlackX[3].Value.NumPosition != 0)
+                {
+                    tempBlackX[1].Value.NumPosition = 0;
+                    tempBlackX[1].Value.InGame = true;
+                    startButton = GetControlByName("b69") as Button;
+                    endButton = GetControlByName("b30") as Button;
+                }
+            }
+            else if (btn.Name == "b3")
+            {
+                if (tempBlackX[0].Value.NumPosition != 0 && tempBlackX[1].Value.NumPosition != 0 && tempBlackX[3].Value.NumPosition != 0)
+                {
+                    tempBlackX[2].Value.NumPosition = 0;
+                    tempBlackX[2].Value.InGame = true;
+                    startButton = GetControlByName("b70") as Button;
+                    endButton = GetControlByName("b30") as Button;
+                }
+            }
+            else if (btn.Name == "b4")
+            {
+                if (tempBlackX[0].Value.NumPosition != 0 && tempBlackX[1].Value.NumPosition != 0 && tempBlackX[1].Value.NumPosition != 0)
+                {
+                    tempBlackX[3].Value.NumPosition = 0;
+                    tempBlackX[3].Value.InGame = true;
+                    startButton = GetControlByName("b71") as Button;
+                    endButton = GetControlByName("b30") as Button;
+                }
+            }
+            if (startButton != null && endButton != null && startButton.Image != null) {
+                endButton.Image = startButton.Image;
+                startButton.Image = null;
+            }
+        }
+        public void MoveFromTo(int startPosition, int endPosition, bool enableButtons = true)
         {
-            // search over whole position - when you find start - you know which figure is -- select those figure and change it value and show 
-            // on appropriate postion - remove old one
             for (int i = 0; i < 72; i++)
             {
                 if (i == startPosition)
@@ -240,7 +490,8 @@ namespace Fall
                     Button btnStart = GetControlByName("b" + i.ToString()) as Button;
                     if (btnStart != null)
                     {
-                        Button btnEnd = GetControlByName("b" + i.ToString()) as Button;
+                        // UpdateFigurePosition(1,1);
+                        Button btnEnd = GetControlByName("b" + endPosition.ToString()) as Button;
                         if (btnEnd != null)
                         {
                             btnEnd.Image = btnStart.Image;
@@ -305,6 +556,12 @@ namespace Fall
                 Path.Combine(ResourcePath, "5.png"),
                 Path.Combine(ResourcePath, "6.png")
             };
+            imgListFigure = new List<string> {
+                Path.Combine(ResourcePath, "Yellow.png"),
+                Path.Combine(ResourcePath, "Green.png"),
+                Path.Combine(ResourcePath, "Red.png"),
+                Path.Combine(ResourcePath, "Black.png")
+            };
         }
         public void PutBorderEvent()
         {
@@ -349,6 +606,31 @@ namespace Fall
             }
             File.WriteAllLines("dinova.txt", lstName);
         }
+
+        int counters = 0;
+        private void t_Tick(object sender, EventArgs e)
+        {
+            int from = 0;
+            int to = 0;
+            int.TryParse(rf.Text.Remove(0, 1).ToString(), out from);
+            int.TryParse(rt.Text.Remove(0,1).ToString(), out to);
+
+            MoveFromTo(from, to);
+
+            t.Stop(); // Stop the timer once the counter reaches 10
+        }
+        private void bM_Click(object sender, EventArgs e)
+        {
+            t.Start();
+            int toPosition = 0;
+            int.TryParse(rt.Text.Remove(0,1), out toPosition);
+            CheckMovement(toPosition);
+        }
+
+        private void mv_Click(object sender, EventArgs e)
+        {
+            MoveFromToStartPosition(new Button() { Name = rn.Text });
+        }
     }
 
     static class FigureStartPostion
@@ -366,10 +648,12 @@ namespace Fall
         public static string Start { get; set; }
         public static string End { get; set; }
         public static string ErrorsGoToPostionIsZero { get { return Errors.GoToPostionIsZero; } }
+        public static string SameColorFigureAlreadyOnPosition { get { return Errors.SameColorFigureAlreadyOnPosition; } }
     }
 
     static class Errors
     {
         public static string GoToPostionIsZero { get; set; }
+        public static string SameColorFigureAlreadyOnPosition { get; set; }
     }
 }

@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Tree));
             this.b57 = new System.Windows.Forms.Button();
             this.b58 = new System.Windows.Forms.Button();
@@ -109,6 +110,13 @@
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
+            this.t = new System.Windows.Forms.Timer(this.components);
+            this.bM = new System.Windows.Forms.Button();
+            this.rf = new System.Windows.Forms.RichTextBox();
+            this.rt = new System.Windows.Forms.RichTextBox();
+            this.lt = new System.Windows.Forms.Label();
+            this.mv = new System.Windows.Forms.Button();
+            this.rn = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
             // 
             // b57
@@ -842,11 +850,75 @@
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
+            // t
+            // 
+            this.t.Interval = 200;
+            this.t.Tick += new System.EventHandler(this.t_Tick);
+            // 
+            // bM
+            // 
+            this.bM.Location = new System.Drawing.Point(865, 232);
+            this.bM.Name = "bM";
+            this.bM.Size = new System.Drawing.Size(75, 23);
+            this.bM.TabIndex = 80;
+            this.bM.Text = "Move";
+            this.bM.UseVisualStyleBackColor = true;
+            this.bM.Click += new System.EventHandler(this.bM_Click);
+            // 
+            // rf
+            // 
+            this.rf.Location = new System.Drawing.Point(865, 272);
+            this.rf.Name = "rf";
+            this.rf.Size = new System.Drawing.Size(75, 22);
+            this.rf.TabIndex = 81;
+            this.rf.Text = "b57";
+            // 
+            // rt
+            // 
+            this.rt.Location = new System.Drawing.Point(865, 300);
+            this.rt.Name = "rt";
+            this.rt.Size = new System.Drawing.Size(75, 22);
+            this.rt.TabIndex = 82;
+            this.rt.Text = "b5";
+            // 
+            // lt
+            // 
+            this.lt.AutoSize = true;
+            this.lt.Location = new System.Drawing.Point(862, 323);
+            this.lt.Name = "lt";
+            this.lt.Size = new System.Drawing.Size(37, 13);
+            this.lt.TabIndex = 83;
+            this.lt.Text = "_____";
+            // 
+            // mv
+            // 
+            this.mv.Location = new System.Drawing.Point(658, 232);
+            this.mv.Name = "mv";
+            this.mv.Size = new System.Drawing.Size(78, 41);
+            this.mv.TabIndex = 84;
+            this.mv.Text = "MoveFromTo";
+            this.mv.UseVisualStyleBackColor = true;
+            this.mv.Click += new System.EventHandler(this.mv_Click);
+            // 
+            // rn
+            // 
+            this.rn.Location = new System.Drawing.Point(658, 288);
+            this.rn.Name = "rn";
+            this.rn.Size = new System.Drawing.Size(75, 22);
+            this.rn.TabIndex = 85;
+            this.rn.Text = "y1";
+            // 
             // Tree
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(984, 961);
+            this.Controls.Add(this.rn);
+            this.Controls.Add(this.mv);
+            this.Controls.Add(this.lt);
+            this.Controls.Add(this.rt);
+            this.Controls.Add(this.rf);
+            this.Controls.Add(this.bM);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
@@ -932,6 +1004,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Tree";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -1016,5 +1089,12 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Timer t;
+        private System.Windows.Forms.Button bM;
+        private System.Windows.Forms.RichTextBox rf;
+        private System.Windows.Forms.RichTextBox rt;
+        private System.Windows.Forms.Label lt;
+        private System.Windows.Forms.Button mv;
+        private System.Windows.Forms.RichTextBox rn;
     }
 }
